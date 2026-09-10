@@ -24,6 +24,44 @@ test.describe('Game Listing and Navigation', () => {
     });
   });
 
+  test('should filter games by category and publisher together', async ({ page }) => {
+    await test.step('Navigate to the catalog and identify a game relationship pair', async () => {
+      await page.goto('/');
+      await expect(page.getByTestId('games-grid')).toBeVisible();
+    });
+
+    const firstCard = page.getByTestId('game-card').first();
+    const categoryId = await firstCard.getAttribute('data-category-id');
+    const publisherId = await firstCard.getAttribute('data-publisher-id');
+
+    await test.step('Apply category and publisher filters', async () => {
+      await page.locator(`[data-category-filter="${categoryId}"]`).check();
+      await page.getByTestId('publisher-filter').selectOption(publisherId ?? '');
+    });
+
+    await test.step('Verify only matching games remain visible', async () => {
+      const visibleCards = page.locator('[data-testid="game-card"]:not(.hidden)');
+      await expect(visibleCards).toHaveCount(1);
+      await expect(visibleCards.first()).toHaveAttribute('data-category-id', categoryId ?? '');
+      await expect(visibleCards.first()).toHaveAttribute('data-publisher-id', publisherId ?? '');
+    });
+  });
+
+  test('should clear active catalog filters', async ({ page }) => {
+    await page.goto('/');
+    const categoryFilter = page.locator('[data-category-filter]').first();
+    await categoryFilter.check();
+    await page.getByTestId('publisher-filter').selectOption({ index: 1 });
+
+    await page.getByTestId('clear-filters').click();
+
+    await expect(categoryFilter).not.toBeChecked();
+    await expect(page.getByTestId('publisher-filter')).toHaveValue('');
+    await expect(page.locator('[data-testid="game-card"]:not(.hidden)')).toHaveCount(
+      await page.getByTestId('game-card').count(),
+    );
+  });
+
   test('should navigate to correct game details page when clicking on a game', async ({ page }) => {
     let gameId: string | null;
     let gameTitle: string | null;
