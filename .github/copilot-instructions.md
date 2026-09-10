@@ -14,6 +14,11 @@ This is a crowdfunding platform for games with a developer theme. The applicatio
 
 ## Code standards
 
+### Documentation comments
+
+- Add a comment block before imports or other code in every new or modified source file explaining the file's purpose.
+- Add a TSDoc comment to every exported function describing its purpose, parameters, and return value.
+
 ### Required Before Each Commit
 
 #### Testing guidelines
